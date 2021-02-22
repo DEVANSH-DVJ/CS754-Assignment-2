@@ -1,0 +1,219 @@
+\documentclass[fleqn, 11pt]{article}
+
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{hyperref}
+\usepackage{ulem}
+\usepackage{enumitem}
+\usepackage[left=0.75in, right=0.75in, bottom=0.75in]{geometry}
+\usepackage{graphicx}
+
+\newcommand{\bs}[1]{\boldsymbol{#1}}
+
+
+\usepackage{array}
+\usepackage{caption}
+\usepackage{floatrow}
+\usepackage{multirow}
+
+\usepackage{chngcntr}
+\counterwithin*{equation}{section}
+\counterwithin*{equation}{subsection}
+
+\usepackage{sectsty}
+\sectionfont{\centering}
+
+\usepackage[perpage]{footmisc}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{190100036 \& 190100044}
+\rhead{CS 754: Assignment 2}
+\renewcommand{\footrulewidth}{1.0pt}
+\cfoot{Page \thepage}
+
+\setlength{\parindent}{0em}
+\renewcommand{\arraystretch}{2}%
+
+\title{Assignment 2: CS 754}
+\author{ 
+\begin{tabular}{|c|c|}
+     \hline
+     \textsf{Krushnakant Bhattad} & \textsf{Devansh Jain} \\
+     \hline
+     \textsf{190100036} & \textsf{190100044}\\
+     \hline
+\end{tabular}
+}
+\date{February 22, 2021}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\thispagestyle{empty}
+\setcounter{page}{0}
+
+\newpage
+\section*{Question 1}
+\addcontentsline{toc}{section}{Question 1}
+\setcounter{equation}{0}
+
+
+\newpage
+\section*{Question 2}
+\addcontentsline{toc}{section}{Question 2}
+\setcounter{equation}{0}
+
+
+\newpage
+\section*{Question 3}
+\addcontentsline{toc}{section}{Question 3}
+\setcounter{equation}{0}
+
+
+\newpage
+\section*{Question 4}
+\addcontentsline{toc}{section}{Question 4}
+\setcounter{equation}{0}
+
+[In this answer, all norms are $\ell_2$ norms unless stated otherwise]
+
+For integer $k = 1,2, \ldots ,n$, the restricted isometry constant(RIC) $\delta_k$ of 
+a matrix $\bs{A}$ of size $m \times n$ is the smallest number such that for any
+k-sparse vector $\bs{\theta}$, we have:
+\begin{center}
+    $ (1-\delta_k) || \bs{\theta} ||^2 \leq || \bs{A\theta} ||^2 
+    \leq (1+\delta_k) || \bs{\theta} ||^2 $
+\end{center}
+
+
+\medskip
+
+Let $s<t$.
+
+Let $Q_s$ be the set of all $s$-sparse vectors, and $Q_t$ be the set of all 
+$t$-sparse vectors. As $s<t$, any $s$-sparse vector is also a $t$-sparse vector.
+Hence, we have $Q_s \subset Q_t$.
+
+$\delta_s$ is the smallest number such that for all $ \bs{\theta} \in Q_s$, 
+\begin{center}
+    $ (1-\delta_s) || \bs{\theta} ||^2 \leq || \bs{A\theta} ||^2 
+    \leq (1+\delta_s) || \bs{\theta} ||^2 $
+\end{center}
+
+And $\delta_t$ is the smallest number such that for all $ \bs{\theta} \in Q_t$, 
+\begin{center}
+    $ (1-\delta_t) || \bs{\theta} ||^2 \leq || \bs{A\theta} ||^2 
+    \leq (1+\delta_t) || \bs{\theta} ||^2 $
+\end{center}
+
+We have to prove that $\delta_s \leq \delta_t$. 
+
+On the contrary, let's assume $\delta_s > \delta_t$. 
+As $Q_s \subset Q_t$, for all $ \bs{\theta} \in Q_s \subset Q_t$, we have 
+
+\begin{center}
+    $ (1-\delta_t) || \bs{\theta} ||^2 \leq || \bs{A\theta} ||^2 
+    \leq (1+\delta_t) || \bs{\theta} ||^2 $
+\end{center}
+
+As $\delta_s$ was defined to be the smallest number satisfying above, 
+it cannot be the case that $\delta_s > \delta_t$.
+
+
+Hence, it must be the case that $\delta_s \leq \delta_t$.
+
+\newpage
+\section*{Question 5}
+\setcounter{equation}{0}
+\addcontentsline{toc}{section}{Question 5}
+
+
+\newpage
+\section*{Question 6}
+\addcontentsline{toc}{section}{Question 6}
+\setcounter{equation}{0}
+
+Fix a $\lambda > 0$ and consider the LASSO Problem:
+
+$J(\boldsymbol{x}) = || \bs{y}-\bs{\Phi} \bs{x} ||_2^2 + \lambda ||\bs{x}||_1 $
+
+\smallskip
+
+Suppose $\bs{r}$ minimizes $J(\cdot)$. 
+
+\smallskip
+
+We claim that, if $\epsilon = || \bs{y}-\bs{\Phi} \bs{r} ||_2$ 
+then, $\bs{r}$ is also a solution to: 
+
+P1: $\min_{\bs{x}} ||\bs{x}||_1$ s. t. $|| \bs{y}-\bs{\Phi} \bs{x} ||_2  \leq \epsilon $
+
+\smallskip
+
+To prove this, we do as follows:
+
+Firstly, for all $\bs{x} \neq \bs{r}$, we will have:  
+$J(\bs{x}) \geq J(\bs{r})$.
+
+\medskip 
+
+Consider all $\bs{x}$ for which $|| \bs{y}-\bs{\Phi} \bs{x} ||_2  \leq \epsilon$.
+
+Due to both sides being positive, we also have- 
+$|| \bs{y}-\bs{\Phi} \bs{x} ||_2^2  \leq \epsilon^2$
+
+\medskip
+
+which we can write as: 
+$ 0 \leq \epsilon^2- || \bs{y}-\bs{\Phi} \bs{x} ||_2^2$
+
+\medskip 
+
+We do know that following holds true for all $\bs{x}$, so it does for our constrain too:
+
+\medskip
+
+$|| \bs{y}-\bs{\Phi} \bs{x} ||_2^2 + \lambda ||\bs{x}||_1 
+\geq || \bs{y}-\bs{\Phi} \bs{r} ||_2^2 + \lambda ||\bs{r}||_1 
+$
+
+
+\medskip
+
+$|| \bs{y}-\bs{\Phi} \bs{x} ||_2^2 + \lambda ||\bs{x}||_1 
+\geq \epsilon^2 + \lambda ||\bs{r}||_1 
+$
+
+\medskip
+
+Now using our constrain, we can write, 
+
+\medskip
+
+$  \lambda ( ||\bs{x}||_1 -   ||\bs{r}||_1  ) \geq 
+\epsilon^2 - || \bs{y}-\bs{\Phi} \bs{x} ||_2^2 \geq 0
+$
+
+\medskip
+
+As $\lambda>0$ by definition, we thus have $||\bs{x}||_1 -   ||\bs{r}||_1  > 0$ 
+for all $\bs{x}$ for which $|| \bs{y}-\bs{\Phi} \bs{x} ||_2  \leq \epsilon$.
+
+\medskip
+
+That is, for all  $\bs{x}$ for which $|| \bs{y}-\bs{\Phi} \bs{x} ||_2  \leq \epsilon$, 
+$  ||\bs{r}||_1 < ||\bs{x}||_1 $ 
+
+\smallskip
+
+Thus, $\bs{r}$ is also a solution to P1 for the value of $\epsilon$ stated above. 
+$\qed$
+
+
+\end{document}
+

@@ -2,7 +2,8 @@ clc;
 clear;
 close all;
 
-rng(0);
+% Setting the seed
+rng(100);
 
 % Reading
 orig = zeros(100,1);
@@ -22,11 +23,9 @@ A(97:100, 100) = [1 2 3 10];
 A = A/16;
 
 alpha = floor(eigs(A'*A,1)) + 1;
-iter = 100;
-lambda = 1;
+iter = 10000;
+lambda = 0.01;
 
-y = A*orig + 0.05*norm(orig)*randn(100,1);
-
+y = A*orig;
 recon = ista(y, A, lambda, alpha, iter);
-
 fprintf('RMSE : %f\n', norm(recon - orig)/norm(orig));

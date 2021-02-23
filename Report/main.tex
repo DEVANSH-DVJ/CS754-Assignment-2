@@ -1,5 +1,6 @@
 \documentclass[fleqn, 11pt]{article}
 
+\usepackage{verbatim}
 \usepackage{amsmath}
 \DeclareMathOperator*{\argmin}{arg\,min}
 \usepackage{amssymb}
@@ -11,7 +12,8 @@
 \usepackage{graphicx}
 
 \newcommand{\bs}[1]{\boldsymbol{#1}}
-
+\newcommand{\ps}[0]{(\boldsymbol{\Phi^T_S \Phi_S})^{-1} \boldsymbol{\Phi^T_S }}
+\newcommand{\pss}[0]{\boldsymbol{\Phi^{\dagger}_S}}
 
 \usepackage{array}
 \usepackage{caption}
@@ -63,16 +65,372 @@
 \setcounter{equation}{0}
 
 
+\includegraphics[scale=0.19]{CS754_HW2_Q1_01.jpg} \newpage
+\includegraphics[scale=0.18]{CS754_HW2_Q1_02.jpg} \newpage
+\includegraphics[scale=0.2]{CS754_HW2_Q1_03.jpg} \newpage
+\includegraphics[scale=0.2]{CS754_HW2_Q1_04.jpg} \newpage
+\includegraphics[scale=0.2]{CS754_HW2_Q1_05-06.jpg} \newpage
+\includegraphics[scale=0.15]{CS754_HW2_Q1_07.jpg} \newpage
+\includegraphics[scale=0.23]{CS754_HW2_Q1_08.jpg} \newpage
+\includegraphics[scale=0.2]{CS754_HW2_Q1_09.jpg} \newpage
+\includegraphics[scale=0.2]{CS754_HW2_Q1_10.jpg} \newpage %INCLUDES 11 AS WELL
+\includegraphics[scale=0.2]{CS754_HW2_Q1_12.jpg} \newpage
+\includegraphics[scale=0.3]{CS754_HW2_Q1_13.jpg} \newpage
+\includegraphics[scale=0.22]{CS754_HW2_Q1_14.jpg} \newpage
+\includegraphics[scale=0.23]{CS754_HW2_Q1_15.jpg} \newpage
+\includegraphics[scale=0.2]{CS754_HW2_Q1_16.jpg} 
+
+
 \newpage
 \section*{Question 2}
 \addcontentsline{toc}{section}{Question 2}
 \setcounter{equation}{0}
 
+\subsection*{Instructions for running the code:}
+\begin{itemize}[noitemsep]
+    \item After extracting submitted file, look for a directory named \texttt{q2}, and \texttt{cd} (change directory) to it.
+    \item Files \texttt{q2a.m}, \texttt{q2b.m}, \texttt{q2c.m} and \texttt{q2d.m} contains the code for (a), (b), (c) and (d) respectively which use the ISTA function defined in file \texttt{ista.m}.
+    \item Run the files \texttt{q2a.m}, \texttt{q2b.m}, \texttt{q2c.m} and \texttt{q2d.m}. The results can be found in \texttt{./results/} 
+\end{itemize}
+
+\subsection*{ISTA Algorithm}
+\begin{verbatim}
+function theta = ista(y, A, lambda, alpha, iter)
+    theta = zeros(size(A, 2), 1);
+    thres = lambda/(2*alpha);
+    for i=1:iter
+        theta = soft(theta + (A'*(y - A*theta))/alpha, thres);
+    end
+end
+
+function y = soft(x,T)
+    y = sign(x).*(max(0, abs(x)-T));
+end
+\end{verbatim}
+Function \texttt{ista} takes y, A, $\lambda$ in the LASSO function, $\alpha$ used in Majorizer function and the number of iterations. \\
+
+\subsection*{Initialization for (a)}
+\begin{verbatim}
+% Setting seed
+rng(0);
+
+% Reading
+orig = cast(imread("data/barbara256.png"),'double');
+H = size(orig, 1);
+W = size(orig, 2);
+% figure; imshow(cast(orig, 'uint8'));
+
+% Adding Gaussian Noise
+noise_img = orig + 2*randn(H, W);
+% figure; imshow(cast(noise_img, 'uint8'));
+\end{verbatim}
+
+\subsection*{Initialization for (b) and (c)}
+\begin{verbatim}
+% Setting seed
+rng(0);
+
+% Reading
+orig = cast(imread("data/barbara256.png"),'double');
+H = size(orig, 1);
+W = size(orig, 2);
+% figure; imshow(cast(orig, 'uint8'));
+\end{verbatim}
+
+\subsection*{Setting $\Phi$ and $\Psi$ for (a)}
+\begin{verbatim}
+% Calculating phi, psi and thus, A.
+phi = diag(ones(64,1));
+psi = kron(dctmtx(8)', dctmtx(8)');
+A = phi*psi;
+\end{verbatim}
+
+\subsection*{Setting $\Phi$ and $\Psi$ for (b)}
+\begin{verbatim}
+% Calculating phi, psi and thus, A.
+phi = randn(32, 64);
+psi = kron(dctmtx(8)', dctmtx(8)');
+A = phi*psi;
+\end{verbatim}
+
+\subsection*{Setting $\Phi$ and $\Psi$ for (c)}
+\begin{verbatim}
+% Calculating phi, psi and thus, A.
+phi = randn(32, 64);
+psi = haarmtx(64);
+A = phi*psi;
+\end{verbatim}
+Function \texttt{haarmtx(N)} is defined at the end of file \texttt{q2c.m} which creates the Haar wavelet transformation matrix of size NxN.\\
+
+\subsection*{Setting alpha, lambda and number of iterations}
+\begin{verbatim}
+alpha = floor(eigs(A'*A,1)) + 1;
+lambda = 1;
+iter = 100;
+\end{verbatim}
+
+\subsection*{Initializing reconstructed image and averaging matrix}
+\begin{verbatim}
+recon_img = zeros(H, W, 'double');
+avg_mat = zeros(H, W, 'double');
+\end{verbatim}
+
+\subsection*{Iterating over all possible 8x8 patches in the image}
+\begin{verbatim}
+for i=1:H-7
+    for j=1:W-7
+        y = phi * reshape(orig(i:i+7,j:j+7), [8*8 1]);
+        theta = ista(y, A, lambda, alpha, iter);
+        recon_img(i:i+7,j:j+7) = recon_img(i:i+7,j:j+7) + reshape(psi * theta, [8 8]);
+        avg_mat(i:i+7,j:j+7) = avg_mat(i:i+7,j:j+7) + ones(8,8);
+        i, j % Prints the coordinates, to check for speed and debugging
+    end
+end
+\end{verbatim}
+
+\subsection*{Normalize the reconstructed image}
+\begin{verbatim}
+recon_img(:,:) = recon_img(:,:)./avg_mat(:,:);
+recon_img(recon_img < 0) = 0;
+recon_img(recon_img > 255) = 255;
+\end{verbatim}
+
+\subsection*{Save the image and calculate RMSE}
+\begin{verbatim}
+figure; imshow(cast([recon_img(:,:), orig(:,:)], 'uint8'));
+imwrite(cast([recon_img(:,:), orig(:,:)], 'uint8'), 'results/q2b.png');
+fprintf('RMSE : %f\n', norm(recon_img(:,:) - orig(:,:), 'fro')/norm(orig(:,:), 'fro'));
+\end{verbatim}
+
+\subsection*{Reporting Relative Mean Squared Error}
+\begin{itemize}
+    \item (a) \\
+    RMSE = 0.013523
+    \item (b) \\
+    RMSE = 0.062871
+    \item (c) \\
+    RMSE = 0.063416
+\end{itemize}
+
+\subsection*{Initialization for (d)}
+\begin{verbatim}
+% Setting the seed
+rng(100);
+
+% Reading
+orig = zeros(100,1);
+ind = randi(100, [10 1]);
+orig(ind) = randi(10, [10 1]);
+\end{verbatim}
+
+\subsection*{Calculating the matrix A for (d)}
+\begin{verbatim}
+A = zeros(100, 100);
+A(1:4, 1) = [10 3 2 1];
+A(1:5, 2) = [6 4 3 2 1];
+A(1:6, 3) = [3 3 4 3 2 1];
+for i=4:97
+     A(i-3:i+3,i) = [1 2 3 4 3 2 1];
+end
+A(95:100, 98) = [1 2 3 4 3 3];
+A(96:100, 99) = [1 2 3 4 6];
+A(97:100, 100) = [1 2 3 10];
+A = A/16;
+\end{verbatim}
+
+\subsection*{Reconstructing the signal}
+\begin{verbatim}
+alpha = floor(eigs(A'*A,1)) + 1;
+iter = 10000;
+lambda = 0.01;
+
+y = A*orig + 0.0005*norm(orig)*randn(100,1); % 5% noise wasn't giving proper reconstruction
+recon = ista(y, A, lambda, alpha, iter);
+fprintf('RMSE : %f\n', norm(recon - orig)/norm(orig));
+\end{verbatim}
+
+The reconstruction error in (d) is pretty high compared to the error calculated in the first three parts. \\
+The ISTA algorithm works perfectly fine, the possible reason for this is that A doesn't follow RIP and thus the reconstruction wasn't nice. \\
+However, reducing the noise with changing the lambda gave better reconstruction with RMSE as low as 0.019029.
 
 \newpage
 \section*{Question 3}
 \addcontentsline{toc}{section}{Question 3}
 \setcounter{equation}{0}
+
+\subsection*{(a)}
+
+As the signal is purely $S$-sparse, we can write as follows if we ignore the 
+elements that we know will be zero: 
+
+$\bs{y= \Phi_S x_S + \eta}$
+
+\smallskip
+
+If we pre-multiply this by the pseudo-inverse, we have: 
+
+\smallskip
+
+$(\ps)\bs{y}= \bs{x_S} + (\ps)\bs{\eta}$
+
+\medskip
+
+Using a method like ML-estimate or least squares, we could estimate the oracular solution,
+as the following, where other elements are zero and 
+the vector of non-zero elements is given by :
+
+$\bs{\Tilde{x}_S}=\ps \:\bs{y}$
+
+\medskip
+
+\subsection*{(b)}
+
+(Unless specified otherwise, the norms are $\ell_2$ norms)
+
+\smallskip
+
+Now, let 
+$\boldsymbol{\Phi^{\dagger}_S} \triangleq 
+(\boldsymbol{\Phi^T_S \Phi_S})^{-1} \boldsymbol{\Phi^T_S }$
+
+\medskip
+
+The original $\bs{x_S}$, is however, $\pss(\bs{y- \eta})$ 
+\hspace{10pt} while, 
+$\bs{\Tilde{x}_S}=\pss \:\bs{y}$
+
+\medskip
+
+Thus we have 
+$|| \bs{x-\Tilde{x}} || 
+= || \bs{x_S-\Tilde{x}_S} ||
+= || \pss \bs{\eta} ||
+$
+
+By definition of the matrix norm (or the largest singular value), we have the following:
+
+\smallskip
+
+$||\pss||_2 = \sup_{\bs{x}} \dfrac{||\pss \bs{x}||_2}{||\bs{x}||_2} $
+
+\medskip
+
+Thus it immediately follows that: 
+
+$||\pss||_2 \geq  \dfrac{||\pss \bs{\eta}||_2}{||\bs{\eta}||_2} $ 
+\hspace{10pt} which we can also write as: \hspace{5pt} 
+$||\pss||_2 {||\bs{\eta}||_2} \geq  {||\pss \bs{\eta}||_2} $ 
+
+\medskip
+
+This brings us to our desired inequality:
+
+\smallskip
+
+$\|\boldsymbol{\tilde{x}}-\boldsymbol{x}\|_2 = \|\boldsymbol{\Phi^{\dagger}_S \eta}\|_2 \leq \|\boldsymbol{\Phi^{\dagger}_S}\|_2 \|\boldsymbol{\eta}\|_2$
+
+\smallskip
+
+\subsection*{(c)}
+
+$k = |S|$ and $\delta_{2k}$ is the RIC of $\boldsymbol{\Phi}$ of order $2k$
+
+\medskip
+
+Thus for all $2k$-sparse vectors $\bs{q}$ we have: 
+
+\begin{center}
+    $(1-\delta_{2k}) || \bs{q} ||_2^2 \leq || \bs{ \Phi q }||_2^2 \leq (1+\delta_{2k}) 
+|| \bs{q} ||_2^2    $
+
+\end{center}
+
+That also guarantees us that the above will hold for all $k$-sparse vectors with
+$\bs{S}$ as a support.
+
+Each vector $\bs{q}_{S}$  in $\mathbb{R}^{k \times 1}$ can be expressed as a 
+$k$-sparse vector with $\bs{S}$ as a support, as 
+
+$ \bs{q}$ in
+$\mathbb{R}^{n \times 1}$, with the same $\ell_2$ norm.
+
+\medskip
+
+Also, for all such vectors , $ \bs{ \Phi q } = \bs{  \Phi}_S \bs{q}_{S}  $
+
+\newpage
+
+Thus, for all vectors $\bs{q}_{S}$  $\in$ $\mathbb{R}^{k \times 1}$, we have: 
+
+
+\begin{center}
+    $(1-\delta_{2k}) || \bs{q_S} ||_2^2 \leq || \bs{ \Phi_S q_S }||_2^2 \leq (1+\delta_{2k}) 
+|| \bs{q_S} ||_2^2    $
+
+\end{center}
+
+\begin{center}
+    $\sqrt{(1-\delta_{2k})}  \leq \dfrac{|| \bs{ \Phi_S q_S }||_2}{|| \bs{q_S} ||_2} \leq \sqrt{(1+\delta_{2k})}
+   $
+
+\end{center}
+
+The term in the middle tells us that the singular values of $\bs{\Phi_S}$ lie in the range 
+$\sqrt{(1-\delta_{2k})} $ to $\sqrt{(1+\delta_{2k})} $.
+
+\medskip
+
+If $\bs{\Phi_S}= USV^T$ is the singular-value decomposition of $\bs{\Phi_S}$,
+
+\smallskip
+
+then the SVD of $\pss$ is $\pss= (V^T)^{-1}S^{-1}U^{-1}$.
+
+\medskip
+
+That is, each of the singular values of $\pss$ is just the multiplicative inverse 
+of the singular values of $\bs{\Phi_S}$ 
+
+If $d \in [a,b]$  then, $\dfrac{1}{d} \in \left[\dfrac{1}{b} , \dfrac{1}{a} \right]$. 
+
+Thus the singular values of $\pss$ (and by consequence, the largest singular value) lie
+in the range \\ 
+$\dfrac{1}{\sqrt{1+ \delta_{2k}}}$ and 
+$\dfrac{1}{\sqrt{1- \delta_{2k}}}$. 
+
+
+~\\
+
+\subsection*{(d)}
+
+Let $\bs{x_t}$ be the answer given by theorem 3, $\bs{x}$ be the actual solution 
+and $\bs{\tilde{x}}$ be the oracular solution.
+The error bound given by Theorem 3 is:
+
+\smallskip
+
+$ ||\bs{x_t-x}||_2 \leq \dfrac{c_0}{\sqrt{|\bs{S}|}} || \bs{x - \tilde{x}} ||_{\ell_1} + c_1
+\epsilon $
+
+For a purely sparse $\bs{x}$, the $\ell_1$ norm term will be 0, and what is left will be $c_1\epsilon$.
+
+Here the bound is: 
+
+\smallskip
+
+$\dfrac{\epsilon}{\sqrt{1+\delta_{2k}}} \leq \|\boldsymbol{x}-\boldsymbol{\tilde{x}}\|_2 \leq
+\dfrac{\epsilon}{\sqrt{1-\delta_{2k}}}$
+
+Since both bounds are independent of n, evidently, the Theorem 3 bound is only a constant factor 
+worse than the oracular solution.
+
+For example, when $\delta_{2k}=0.25$, we get 
+
+$  0.89 \epsilon     \leq \|\boldsymbol{x}-\boldsymbol{\tilde{x}}\|_2 \leq  1.16 \epsilon$
+
+while theorem 3 error bound is about $6 \epsilon$.
+
+
 
 
 \newpage
@@ -131,6 +489,25 @@ Hence, it must be the case that $\delta_s \leq \delta_t$.
 \section*{Question 5}
 \setcounter{equation}{0}
 \addcontentsline{toc}{section}{Question 5}
+
+\subsection*{(1)}
+Title of the paper - "Low-Cost and High-Throughput Testing of COVID-19 Viruses and Antibodies via Compressed Sensing: System Concepts and Computational Experiments" \\
+Link - \url{https://arxiv.org/abs/2004.05759}
+
+\subsection*{(2)}
+The paper solves the Basis Pursuit problem ($\ell_1$ norm optimization): \\
+$$ \min_{\bs{x} \in \mathbb{R}^n} || \bs{x} ||_1, \text{ s.t. } || \bs{Ax - y} ||_2 \le \epsilon, \bf{x} \ge 0 $$
+where $\epsilon > 0$ is a parameter tuned to noise magnitude, and where $\bs{A} \in \mathbb{R}^{m \times n}$ is the measurement matrix, $\bs{x}$ is the signal to be recovered, and $\bs{y} \in \mathbb{R}^m$ is the measurement vector.
+
+\subsection*{(3)}
+Differences between the proposed approach and the Tapestry pooling approach
+\begin{enumerate}
+    \item The actual measurement matrix $A$ in the proposed approach is the element-wise multiplication of mixing matrix $E$ (binary) and allocation matrix $W$ (percentage of each sample in each pool). The actual measurement matrix $A$ in the Tapestry pooling approach is just a binary matrix. Also, the method of construction of the measurement matrix is different.
+    \item Even though the paper mentions several algorithms to solve the system, it uses the Basis pursuit to find $\bs{x}$. The Tapestry paper uses algorithms like NN-OMP which is an approximation algorithm for the $\ell_0$ norm optimization problem (P0 problem with $\bs{x} \ge \bs{0}$)
+    \item One of the major difference is that the proposed approach doesn't remove samples belonging to a pool which has tested negative. This is taken care in the Tapestry pooling approach uses COMP (Combinatorial Group-testing) to make the system of equations as small as possible.
+    \item While designing the sensing matrix $A$, the Tapestry pooling approach for the ease of pipetting, $A$ is made sparse. While in the proposed approach the sensing matrix was a Bernoulli random matrix where each entry of the matrix is `0' with probability 0.5, and is `1' with probability 0.5.
+\end{enumerate}
+
 
 
 \newpage
@@ -201,13 +578,13 @@ $
 
 \medskip
 
-As $\lambda>0$ by definition, we thus have $||\bs{x}||_1 -   ||\bs{r}||_1  > 0$ 
+As $\lambda>0$ by definition, we thus have $||\bs{x}||_1 -   ||\bs{r}||_1  \geq 0$ 
 for all $\bs{x}$ for which $|| \bs{y}-\bs{\Phi} \bs{x} ||_2  \leq \epsilon$.
 
 \medskip
 
 That is, for all  $\bs{x}$ for which $|| \bs{y}-\bs{\Phi} \bs{x} ||_2  \leq \epsilon$, 
-$  ||\bs{r}||_1 < ||\bs{x}||_1 $ 
+$  ||\bs{r}||_1 \leq ||\bs{x}||_1 $ 
 
 \smallskip
 
